@@ -9,13 +9,9 @@ const payDialog  = require('../views/payment.pug')
 
 const csrf = $('meta[name=csrf]').attr('content')
 
-$('[data-buy-item]').click(e => {
-  e.preventDefault()
-  pay({ item: $(e.target).data('buy-item') })
-})
 $('[data-buy]').submit(e => {
   e.preventDefault()
-  pay({ amount: $(e.target).find('[name=amount]').val() })
+  pay({ email: $(e.target).find('[name=email]').val(), name: $(e.target).find('[name=name]').val() })
 })
 
 const pay = async data => {

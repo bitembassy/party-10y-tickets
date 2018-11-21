@@ -4,10 +4,8 @@ import only    from 'only'
 import { pwrap, fiatFormatter } from './util'
 
 const app    = require('express')()
-    , items  = require('js-yaml').safeLoad(fs.readFileSync(process.env.ITEMS_PATH || 'items.yaml'))
     , charge = require('lightning-charge-client')(process.env.CHARGE_URL, process.env.CHARGE_TOKEN)
-
-Object.keys(items).filter(k => !items[k].title).forEach(k => items[k].title = k)
+    , items = {}
 
 app.set('port', process.env.PORT || 9116)
 app.set('host', process.env.HOST || 'localhost')
@@ -21,7 +19,7 @@ app.locals.formatFiat = fiatFormatter(app.settings.currency)
 
 app.use(require('cookie-parser')())
 app.use(require('body-parser').json())
-app.use(require('body-parser').urlencoded({ extended: true }))
+app.use(require('body-parser').urlencoded({ extended: false }))
 
 app.use(require('morgan')('dev'))
 app.use(require('csurf')({ cookie: true }))
@@ -36,15 +34,13 @@ if (fs.existsSync(compiledBundle)) app.get('/script.js', (req, res) => res.sendF
 else app.get('/script.js', require('browserify-middleware')(require.resolve('./client')))
 
 app.post('/invoice', pwrap(async (req, res) => {
-  const item = req.body.item ? items[req.body.item] : { price: req.body.amount }
-  if (!item) return res.sendStatus(404)
-
+  const info = req.body
   const inv = await charge.invoice({
-    amount: item.price
-  , currency: item.price ? app.settings.currency : null
-  , description: `${ app.settings.title }${ item.title ? ': ' + item.title : '' }`
-  , expiry: 599
-  , metadata: { source: 'nanopos', item: req.body.item }
+    amount: process.env.PRICE || 18
+  , currency: process.env.CURRENCY || 'ILS'
+  , description: `Bitcoin Birthday Party! Ticket for ${info.name} <${info.email}>`
+  , expiry: 5990
+  , metadata: { source: 'party-2018', name: info.name, email: info.email }
   })
   res.send(only(inv, 'id payreq msatoshi quoted_currency quoted_amount expires_at'))
 }))
