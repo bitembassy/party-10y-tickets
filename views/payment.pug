@@ -4,14 +4,10 @@
  .modal-dialog.modal-sm
    .modal-content
      .modal-body.text-center
-       h5 Pay with Lightning
-       if msatoshi
-         if quoted_currency && quoted_currency != 'BTC'
-           p.font-weight-light.small #{ quoted_amount } #{ quoted_currency } ≈ #{ msat2sat(msatoshi, true) } satoshis
-         else
-           p.font-weight-light.small #{ msat2sat(msatoshi, true) } satoshis
+       h5 שלמי ברשת הברק
+       p.font-weight-light.small #{ quoted_amount } ש"ח ≈ #{ msat2sat(msatoshi, true) } סטושים
        img.d-block.w-100.mb-3(src=qr)
        .input-group
          input.form-control(type='text', value=payreq, readonly)
          input-group-append: a.btn.btn-primary(href='lightning:'+payreq) ⚡
-       p.text-muted.small.font-weight-light.mb-0 Invoice expires in #[span(data-countdown-to=expires_at)]
+       p.text-muted.small.font-weight-light.mb-0 בקשת התשלום תקפה לעוד #[span(data-countdown-to=expires_at)]
