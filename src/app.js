@@ -5,7 +5,9 @@ import { pwrap, fiatFormatter } from './util'
 
 const app    = require('express')()
     , charge = require('lightning-charge-client')(process.env.CHARGE_URL, process.env.CHARGE_TOKEN)
-    , items = {}
+    , items  = {}
+
+require('./pay-listen')(charge)
 
 app.set('port', process.env.PORT || 9116)
 app.set('host', process.env.HOST || 'localhost')
