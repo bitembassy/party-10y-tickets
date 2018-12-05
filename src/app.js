@@ -17,6 +17,7 @@ app.set('theme', process.env.THEME || 'yeti')
 app.set('views', path.join(__dirname, '..', 'views'))
 app.set('trust proxy', process.env.PROXIED || 'loopback')
 
+const price = app.locals.price = process.env.PRICE || 20
 app.locals.formatFiat = fiatFormatter(app.settings.currency)
 
 app.use(require('cookie-parser')())
@@ -38,7 +39,7 @@ else app.get('/script.js', require('browserify-middleware')(require.resolve('./c
 app.post('/invoice', pwrap(async (req, res) => {
   const info = req.body
   const inv = await charge.invoice({
-    amount: process.env.PRICE || 18
+    amount: price
   , currency: process.env.CURRENCY || 'ILS'
   , description: `Bitcoin Birthday Party! Ticket for ${info.name} <${info.email}>`
   , expiry: 5990
