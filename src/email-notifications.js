@@ -6,9 +6,9 @@ const mailFrom    = process.env.MAIL_FROM || 'party@bitcoin.org.il'
     , mailTmpl    = process.env.MAIL_TMPL || require('fs').readFileSync('./email-tmpl.txt').toString()
 
 async function sendMail(inv) {
-  const persons = JSON.parse(inv.posData)
+  const persons = JSON.parse(inv.posData).persons
       , personsText = persons.map(p => `${p.name} <${p.email}>`).join('\n')
-      , isLightning = inv.cryptoInfo[0].paymentType == 'LightningLike'
+      , isLightning = !!inv.paymentSubtotals.BTC_LightningLike
 
   await mailgun.messages().send({
     from: mailFrom
