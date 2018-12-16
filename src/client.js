@@ -53,7 +53,7 @@ async function pay(e) {
     btcpay.showInvoice(inv.id)
   }
   finally {
-    $(':disabled').attr('disabled', false)
+    setTimeout(_ => $(':disabled').attr('disabled', false), 5000)
   }
 
 }
