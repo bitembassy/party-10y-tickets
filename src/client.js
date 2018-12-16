@@ -1,67 +1,66 @@
 require('babel-polyfill')
 
+;(function(){ // IIFE
+
 const $ = require('jquery')
-    , B = require('bootstrap')
-    , qrcode = require('qrcode')
+    , btcpay = require('./client-btcpay')
+    , personView = require('../views/person.pug')
 
-const payDialog  = require('../views/payment.pug')
-    , paidDialog = require('../views/success.pug')
+const csrf   = $('meta[name=csrf]').attr('content')
+    , prices = JSON.parse($('meta[name=prices]').attr('content'))
 
-const csrf = $('meta[name=csrf]').attr('content')
+btcpay.setApiUrlPrefix($('meta[name=btcpay-url]').attr('content'))
 
-$('[data-buy]').submit(e => {
+//
+// Person details
+//
+
+const personsEl = $('.persons')
+
+function personAdd() {
+  personsEl.append(personView({ btn_type: 'remove' }))
+  updatePrices()
+}
+
+function personRemove(e){
+  $(e.target).closest('.person').remove()
+  updatePrices()
+}
+
+function updatePrices() {
+  const persons = $('.person').length
+  $('.price-onchain').text(persons * prices.onchain)
+  $('.price-lightning').text(persons * prices.lightning)
+}
+
+//
+// Payment
+//
+
+async function pay(e) {
   e.preventDefault()
-  pay({ email: $(e.target).find('[name=email]').val(), name: $(e.target).find('[name=name]').val() })
-})
 
-const pay = async data => {
-  $('[data-buy-item], [data-buy] :input').prop('disabled', true)
+  const btn    = $(e.target).find('button[type=submit]:focus')[0]
+      , method = btn && btn.value || 'onchain'
+      , names  = $('input[name=name]').get().map(el => el.value)
+      , emails = $('input[name=email]').get().map(el => el.value)
+      , persons = names.map((name, i) => ({ name, email: emails[i] }))
+
+  $('button, [data-do], :input').prop('disabled', true)
 
   try {
-    const inv  = await $.post('invoice', { ...data, _csrf: csrf })
-        , qr   = await qrcode.toDataURL(`lightning:${ inv.payreq }`.toUpperCase(), { margin: 2, width: 300 })
-        , diag = $(payDialog({ ...inv, qr })).modal()
-
-    updateExp(diag.find('[data-countdown-to]'))
-
-    const unlisten = listen(inv.id, paid => (diag.modal('hide'), paid && success()))
-    diag.on('hidden.bs.modal', unlisten)
+    const inv = await $.post('invoice', { method, persons, _csrf: csrf })
+    btcpay.showInvoice(inv.id)
   }
-  finally { $(':disabled').attr('disabled', false) }
+  finally {
+    $(':disabled').attr('disabled', false)
+  }
+
 }
 
-const listen = (invid, cb) => {
-  let retry = _ => listen(invid, cb)
-  const req = $.get(`invoice/${ invid }/wait`)
+$(document.body)
+  .on('click', '[data-do=person-add]', personAdd)
+  .on('click', '[data-do=person-remove]', personRemove)
+  .on('submit', 'form', pay)
 
-  req.then(_ => cb(true))
-    .catch(err =>
-      err.status === 402 ? retry()   // long polling timed out, invoice is still payable
-    : err.status === 410 ? cb(false) // invoice expired and can no longer be paid
-    : err.statusText === 'abort' ? null // user aborted, do nothing
-    : setTimeout(retry, 10000)) // unknown error, re-poll after delay
-
-  return _ => (retry = _ => null, req.abort())
-}
-
-const success = _ => {
-  const diag = $(paidDialog()).modal()
-}
-
-const updateExp = el => {
-  const left = +el.data('countdown-to') - (Date.now()/1000|0)
-  if (left > 0) el.text(formatDur(left))
-  else el.closest('.modal').modal('hide')
-}
-
-const formatDur = x => {
-  const h=x/3600|0, m=x%3600/60|0, s=x%60
-  return ''+(h>0?h+':':'')+(m<10&&h>0?'0':'')+m+':'+(s<10?'0':'')+s
-}
-
-setInterval(_ =>
-  $('[data-countdown-to]').each((_, el) =>
-    updateExp($(el)))
-, 1000)
-
-$(document).on('hidden.bs.modal', '.modal', e => $(e.target).remove())
+})()
