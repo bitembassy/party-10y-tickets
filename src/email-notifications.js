@@ -12,7 +12,8 @@ async function sendMail(inv) {
   const posData     = JSON.parse(inv.posData)
       , personsText = posData.persons.map(p => `${p.name} <${p.email}>`).join('\n')
       , isLightning = !!inv.paymentSubtotals.BTC_LightningLike
-      , mailTmpl    = mailTmpls[posData.lang || 'he']
+      , lang        = posData.lang || 'he'
+      , mailTmpl    = mailTmpls[lang]
 
   await mailgun.messages().send({
     from: mailFrom
@@ -25,7 +26,7 @@ async function sendMail(inv) {
     const text = mailTmpl.replace('{{name}}', p.name)
                          .replace(isLightning  ? /\[\/?LN\]/g : /\[LN\][\s\S]*?\[\/LN\]/g, '')
                          .replace(!isLightning ? /\[\/?ONCHAIN\]/g : /\[ONCHAIN\][\s\S]*?\[\/ONCHAIN\]/g, '')
-        , html = `<div style="direction:rtl;text-align:right"><p>${ text.replace(/\n\n/g, '</p><p>') }</p></div>`
+        , html = `<div${ lang == 'he' ? ' style="direction:rtl;text-align:right"' : '' }><p>${ text.replace(/\n\n/g, '</p><p>') }</p></div>`
 
     return mailgun.messages().send({
       from: mailFrom
