@@ -28,10 +28,19 @@ const cbKey = createHmac('sha256', process.env.BTCPAY_LN_KEY).update('callback-k
 const cbURL = `${ process.env.CALLBACK_URL }/callback/${cbKey}`
 const thankyouURL = `${ process.env.PUBLIC_URL }/thankyou`
 
-const prices = app.locals.prices = {
-  lightning: process.env.PRICE_LIGHTNING || 21
-, onchain:   process.env.PRICE_ONCHAIN   || 30
+const usdRate = process.env.ILS_USD_RATE || 3.767
+
+const pricesILS = {
+  lightning: +process.env.PRICE_LIGHTNING || 21
+, onchain:   +process.env.PRICE_ONCHAIN   || 35
 }
+
+const pricesUSD = {
+  lightning: Math.round(pricesILS.lightning / usdRate)
+, onchain:   Math.round(pricesILS.onchain / usdRate)
+}
+
+const prices = app.locals.prices = { ILS: pricesILS, USD: pricesUSD }
 
 app.use(require('cookie-parser')())
 app.use(require('body-parser').json())
@@ -43,6 +52,7 @@ app.post(`/callback/${cbKey}`, require('./email-notifications'))
 app.use(require('csurf')({ cookie: true }))
 
 app.get('/', (req, res) => res.render('index.pug', { req }))
+app.get('/en', (req, res) => res.render('english.pug', { req }))
 
 app.use('/bootswatch', require('express').static(path.resolve(require.resolve('bootswatch/package'), '..', 'dist')))
 
@@ -52,12 +62,20 @@ if (fs.existsSync(compiledBundle)) app.get('/script.js', (req, res) => res.sendF
 else app.get('/script.js', require('browserify-middleware')(require.resolve('./client')))
 
 app.post('/invoice', pwrap(async (req, res) => {
-  const method  = req.body.method
-      , persons = req.body.persons
-      , tickets = persons && persons.length
+  const method   = req.body.method
+      , persons  = req.body.persons
+      , tickets  = persons && persons.length
+      , currency = req.body.currency || 'ILS'
+      , lang     = req.body.lang || 'he'
 
   if (![ 'lightning', 'onchain' ].includes(method))
     return res.status(400).end('Invalid payment method')
+
+  if (![ 'ILS', 'USD' ].includes(currency))
+    return res.status(400).end('Invalid currency')
+
+  if (![ 'he', 'en' ].includes(lang))
+    return res.status(400).end('Invalid language')
 
   if (!persons || !persons.length || !persons[0] || !persons[0].name)
     return res.status(400).end('Invalid persons')
@@ -65,15 +83,13 @@ app.post('/invoice', pwrap(async (req, res) => {
   const personsText = persons.map(p => `${p.name} <${p.email}>`).join(', ')
 
   const inv = await btcpay[method].create_invoice({
-    price: prices[method] * tickets
-  , currency: app.settings.currency
+    price: prices[currency][method] * tickets
+  , currency
   , notificationUrl: cbURL
-  , notificationEmail: 'nadav@shesek.info' // TODO
-  , redirectURL: thankyouURL // TODO does this work with modal?
   , itemDesc: `Bitcoin Birthday Party: ${ tickets == 1 ? `Ticket for ${persons[0].name} <${persons[0].email}>`
                                                           : `${tickets} tickets` }`
   , itemCode: personsText
-  , posData: JSON.stringify({ persons })
+  , posData: JSON.stringify({ lang, persons })
   })
 
   console.log('Invoice created:', inv)

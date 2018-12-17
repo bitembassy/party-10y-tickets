@@ -6,8 +6,10 @@ const $ = require('jquery')
     , btcpay = require('./client-btcpay')
     , personView = require('../views/person.pug')
 
-const csrf   = $('meta[name=csrf]').attr('content')
+const csrf = $('meta[name=csrf]').attr('content')
+    , lang = $('html').attr('lang')
     , prices = JSON.parse($('meta[name=prices]').attr('content'))
+    , currency = $('meta[name=currency]').attr('content')
 
 btcpay.setApiUrlPrefix($('meta[name=btcpay-url]').attr('content'))
 
@@ -18,7 +20,7 @@ btcpay.setApiUrlPrefix($('meta[name=btcpay-url]').attr('content'))
 const personsEl = $('.persons')
 
 function personAdd() {
-  personsEl.append(personView({ btn_type: 'remove' }))
+  personsEl.append(personView({ lang, btn_type: 'remove' }))
   updatePrices()
 }
 
@@ -49,7 +51,7 @@ async function pay(e) {
   $('button, [data-do], :input').prop('disabled', true)
 
   try {
-    const inv = await $.post('invoice', { method, persons, _csrf: csrf })
+    const inv = await $.post('invoice', { currency, lang, method, persons, _csrf: csrf })
     btcpay.showInvoice(inv.id)
   }
   finally {

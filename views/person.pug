@@ -4,5 +4,5 @@
 .person.form-group
   .input-group.input-group-lg
     .input-group-prepend: button.btn.btn-secondary(type='button', data-do='person-'+btn_type)= btn_text
-    input.form-control.form-control-lg.border-right-0(type='text', name='name', required, placeholder='שם')
-    input.form-control.form-control-lg.border-right-0(type='email', name='email', placeholder='כתובת אימייל', required)
+    input.form-control.form-control-lg(type='text', name='name', required, placeholder=(lang == 'he' ? 'שם': 'Name'))
+    input.form-control.form-control-lg(type='email', name='email', placeholder=(lang == 'he' ? 'כתובת אימייל' : 'Email address'), required)

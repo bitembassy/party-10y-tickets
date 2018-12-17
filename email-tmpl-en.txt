@@ -1,0 +1,7 @@
+Hello {{name}},
+
+Your [LN]Lightning[/LN][ONCHAIN]Bitcoin[/ONCHAIN] payment for Bitcoin's 10th birthday was received succesfully. The tickets will be sent to this email address within a few days.
+[LN]
+Kudos for embracing technological progress and joining the elite club of the brave and the reckless who use the lightning network for fast and efficient payments!
+[/LN]
+See you at the party :)

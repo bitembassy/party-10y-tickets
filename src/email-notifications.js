@@ -3,21 +3,25 @@ const mailgun = require('mailgun-js')({ apiKey: process.env.MAILGUN_APIKEY, doma
 const mailFrom    = process.env.MAIL_FROM || 'party@bitcoin.org.il'
     , mailNotify  = process.env.MAIL_NOTIFY || 'noa@bitcoin.org.il'
     , mailSubject = process.env.MAIL_SUBJECT || '[Bitcoin Party] Ticket purchased successfully'
-    , mailTmpl    = process.env.MAIL_TMPL || require('fs').readFileSync('./email-tmpl.txt').toString()
+    , mailTmpls   = {
+        he: require('fs').readFileSync('./email-tmpl-he.txt').toString()
+      , en: require('fs').readFileSync('./email-tmpl-en.txt').toString()
+      }
 
 async function sendMail(inv) {
-  const persons = JSON.parse(inv.posData).persons
-      , personsText = persons.map(p => `${p.name} <${p.email}>`).join('\n')
+  const posData     = JSON.parse(inv.posData)
+      , personsText = posData.persons.map(p => `${p.name} <${p.email}>`).join('\n')
       , isLightning = !!inv.paymentSubtotals.BTC_LightningLike
+      , mailTmpl    = mailTmpls[posData.lang || 'he']
 
   await mailgun.messages().send({
     from: mailFrom
   , to: mailNotify
-  , subject: `[Bitcoin Party] ${persons.length} tickets purchased `
+  , subject: `[Bitcoin Party] ${posData.persons.length} tickets purchased `
   , text: `Tickets purchased for:\n\n${personsText}\n\n${JSON.stringify(inv, null, 2)}`
   })
 
-  await Promise.all(persons.map(p => {
+  await Promise.all(posData.persons.map(p => {
     const text = mailTmpl.replace('{{name}}', p.name)
                          .replace(isLightning  ? /\[\/?LN\]/g : /\[LN\][\s\S]*?\[\/LN\]/g, '')
                          .replace(!isLightning ? /\[\/?ONCHAIN\]/g : /\[ONCHAIN\][\s\S]*?\[\/ONCHAIN\]/g, '')

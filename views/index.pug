@@ -1,11 +1,13 @@
+- lang= 'he'
 doctype html
 
-html.h-100
+html.h-100(lang=lang)
   title= settings.title
   meta(charset='utf-8')
   meta(name='viewport', content='width=device-width, initial-scale=1')
   meta(name='csrf', content=req.csrfToken())
-  meta(name='prices', content=JSON.stringify(prices))
+  meta(name='currency', content='ILS')
+  meta(name='prices', content=JSON.stringify(prices.ILS))
   meta(name='btcpay-url', content=process.env.BTCPAY_URL)
   meta(name='apple-mobile-web-app-capable', content='yes')
   link(rel='stylesheet', href='bootswatch/'+settings.theme+'/bootstrap.min.css')
@@ -14,13 +16,13 @@ html.h-100
     .container { padding-top: 2rem; padding-bottom: 2rem; flex-direction: column }
     .container::before { content: ' '; margin-top: auto; }
     .container::after { content: ' '; margin-bottom: auto; }
+    input[name=name], input[name=email] { border-right: 0 }
 
   body.h-100(dir='rtl')
     .container.d-flex.h-100: .text-center.w-100
 
       h1 ביטקוין בן עשר OMG!
       h3 הזמנת כרטיסים #[a(href='https://www.facebook.com/events/1994274880660738/') למסיבת העשור, שלושה בינואר, האומן 17 תל אביב]
-      //- h3 רק #{prices.lightning} שקלים למשלמים ברשת הברק :)
 
       .row.mt-4
         .col-sm-2
@@ -30,18 +32,15 @@ html.h-100
               include person
 
             .row
-              .col-6.text-left.pl-2 מחיר בביטקוין: #[span.price-onchain= prices.onchain] ש"ח
-              .col-6.text-right.pr-2 מחיר בלייטנינג: #[span.price-lightning= prices.lightning] ש"ח
+              .col-6.text-left.pl-2 מחיר בביטקוין: #[span.price-onchain= prices.ILS.onchain] ש"ח
+              .col-6.text-right.pr-2 מחיר בלייטנינג: #[span.price-lightning= prices.ILS.lightning] ש"ח
 
             .btn-group.mt-4
               button.btn.btn-lg.btn-warning(type='submit', name='method', value='onchain') שלמי בביטקוין
               button.btn.btn-lg.btn-primary(type='submit', name='method', value='lightning') שלמי ברשת הברק
 
-      h5.mt-5 * לא חובה שם אמיתי, אבל שיהיה ייחודי ולא לשכוח
+      h5.mt-5 * לא חובה שם אמיתי, אבל שיהיה ייחודי ולא לשכוח. אישור ההזמנה והכרטיסים ישלחו לאימייל.
       h5.mt-3 לפרטים נוספים, ניתן לפנות ל #[a(href="mailto:party@bitcoin.org.il") party@bitcoin.org.il]
-
-      //-h4.mt-5 נצלו את ההזדמנות לפתוח ערוץ עם השגרירות, כתובת הצומת:
-      //-p.text-muted(style='word-break:break-all; max-width: 30em; margin: 0 auto') 03649c72a4816f0cd546f84aafbd657e92a30ab474de7ab795e8b5650a427611f7@ln.bitembassy.org
-      //-include lightning-qr
+      p.mt-3: a(href='en'): small English version
 
   script(src='script.js')
