@@ -42,7 +42,7 @@ function updatePrices() {
 async function pay(e) {
   e.preventDefault()
 
-  const btn    = $(e.target).find('button[type=submit]:focus')[0]
+  const btn    = $(e.target).find('button[type=submit]:focus')[0] || lastBtn
       , method = btn && btn.value || 'onchain'
       , names  = $('input[name=name]').get().map(el => el.value)
       , emails = $('input[name=email]').get().map(el => el.value)
@@ -60,9 +60,16 @@ async function pay(e) {
 
 }
 
+let lastBtn
+function btnClick(e) {
+  lastBtn = e.target
+}
+
+
 $(document.body)
   .on('click', '[data-do=person-add]', personAdd)
   .on('click', '[data-do=person-remove]', personRemove)
+  .on('click', '[type=submit]', btnClick)
   .on('submit', 'form', pay)
 
 })()
