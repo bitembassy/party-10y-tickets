@@ -6,9 +6,6 @@ html.h-100(lang=lang)
   meta(charset='utf-8')
   meta(name='viewport', content='width=device-width, initial-scale=1')
   meta(name='csrf', content=req.csrfToken())
-  meta(name='currency', content='USD')
-  meta(name='prices', content=JSON.stringify(prices.USD))
-  meta(name='btcpay-url', content=process.env.BTCPAY_URL)
   meta(name='apple-mobile-web-app-capable', content='yes')
   link(rel='stylesheet', href='bootswatch/'+settings.theme+'/bootstrap.min.css')
   style.
@@ -29,23 +26,9 @@ html.h-100(lang=lang)
 
       h1 Bitcoin is 10 years old OMG!
       h3 Tickets for #[a(href='https://www.facebook.com/events/1994274880660738/') Bitcoin 10th anniversary, January 3rd, HaOman 17 Tel Aviv]
+      p
+        h2 The tickets pre-order is over! :) In case more tickets are available, we will notify you and reopen the sale.
 
-      .row.mt-4
-        .col-sm-2
-        .col-sm-8
-          form
-            .persons
-              include person
-
-            .row
-              .col-6.text-right.pl-2 On-chain price: $#[span.price-onchain= prices.USD.onchain]
-              .col-6.text-left.pr-2 Lightning price: $#[span.price-lightning= prices.USD.lightning]
-
-            .btn-group.mt-4
-              button.btn.btn-lg.btn-warning(type='submit', name='method', value='onchain') On-chain payment
-              button.btn.btn-lg.btn-primary(type='submit', name='method', value='lightning') Lightning payment
-
-      h5.mt-5 * Doesn't have to be your real name, but make it unique and don't forget it. Order confirmation and tickets will be sent by email.
       h5.mt-3 For more details, contact #[a(href="mailto:party@bitcoin.org.il") party@bitcoin.org.il]
       p.mt-3: a(href='.'): small לגירסה בעברית
 
